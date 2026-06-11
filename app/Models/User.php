@@ -29,6 +29,7 @@ class User extends Authenticatable
         'adresse',
         'two_factor_code',
         'two_factor_expires_at',
+        'doit_changer_mdp',
     ];
 
     /**

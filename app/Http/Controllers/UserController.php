@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -18,8 +19,7 @@ class UserController extends Controller
             'nom' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:8',
-            'role' => 'required|in:Assureur,Expert', // Seuls ces deux rôles peuvent être créés ici
+            'role' => 'required|in:Assureur,Expert',
             'telephone' => 'required|string|max:20',
             'adresse' => 'required|string',
         ]);
@@ -28,11 +28,13 @@ class UserController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $motDePasseAleatoire = Str::random(10);
+
         $user = User::create([
             'nom' => $request->nom,
             'prenom' => $request->prenom,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'password' => Hash::make($motDePasseAleatoire),
             'role' => $request->role,
             'telephone' => $request->telephone,
             'adresse' => $request->adresse,
@@ -40,6 +42,7 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Le profil professionel ('.$user->role.') a été créé avec succès.',
+            'mot_de_passe_temporaire' => $motDePasseAleatoire,
             'user' => $user
         ], 201);
     }
@@ -53,7 +56,6 @@ class UserController extends Controller
             'nom' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:8',
             'telephone' => 'required|string|max:20',
             'adresse' => 'required|string',
         ]);
@@ -62,18 +64,21 @@ class UserController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        $motDePasseAleatoire = Str::random(10);
+
         $user = User::create([
             'nom' => $request->nom,
             'prenom' => $request->prenom,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role' => 'Assure', // Verrouillé sur "Assure" !
+            'password' => Hash::make($motDePasseAleatoire),
+            'role' => 'Assure',
             'telephone' => $request->telephone,
             'adresse' => $request->adresse,
         ]);
 
         return response()->json([
             'message' => 'Le compte Assuré a été créé avec succès par l\'assureur.',
+            'mot_de_passe_temporaire' => $motDePasseAleatoire,
             'user' => $user
         ], 201);
     }

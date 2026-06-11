@@ -18,12 +18,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);
     
-    // --- ROUTES ADMIN ---
+    // ROUTES ADMIN 
     Route::middleware('role:Admin')->group(function () {
         Route::post('/admin/professionnal', [UserController::class, 'createProfessional']);
     });
     
-    // --- ROUTES ASSUREUR ---
+    // ROUTES ASSUREUR 
     Route::middleware('role:Assureur')->group(function () {
         Route::post('/assureur/assures', [UserController::class, 'createAssure']);
     });
