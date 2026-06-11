@@ -105,4 +105,36 @@ class AuthController extends Controller
 
         return response()->json(['message' => 'Déconnexion réussie'], 200);
     }
+
+    /**
+     * Changement du mot de passe temporaire
+     */
+    public function changePassword(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'current_password' => 'required',
+            // Oblige à avoir un mot de passe de 8 caractères, différent de l'ancien, et qui doit être confirmé (champ new_password_confirmation)
+            'new_password' => 'required|min:8|different:current_password|confirmed', 
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = $request->user();
+
+        // On vérifie que son mot de passe temporaire renseigné est bien le bon
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'L\'ancien mot de passe est incorrect.'], 400);
+        }
+
+        // On met à jour avec le nouveau mot de passe défini
+        $user->password = Hash::make($request->new_password);
+        $user->doit_changer_mdp = false; // On débloque son compte !
+        $user->save();
+
+        return response()->json([
+            'message' => 'Mot de passe changé avec succès. Vous avez désormais un accès total.'
+        ], 200);
+    }
 }
