@@ -16,7 +16,9 @@ return new class extends Migration
             $table->string('nom');
             $table->string('prenom');
             $table->string('email')->unique();
-            $table->enum('role', ['admin', 'assure', 'assureur', 'expert']);
+            $table->enum('role', ['Admin', 'Assure', 'Assureur', 'Expert'])->default('Assure');
+            $table->string('two_factor_code')->nullable();
+            $table->dateTime('two_factor_expires_at')->nullable();
             $table->string('telephone');
             $table->string('adresse');
             $table->timestamp('email_verified_at')->nullable();
