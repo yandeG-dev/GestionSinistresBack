@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('contrats', function (Blueprint $table) {
-            $table->id('idContrat');
+            $table->id();
             $table->string('numeroContrat');
             $table->string('typeContrat');
             $table->date('dateDebut');
@@ -22,8 +22,15 @@ return new class extends Migration
             $table->string('garantie');
             $table->string('nomSouscripteur');
             $table->string('policeAssurance');
+            
+            // CHAMPS SPÉCIFIQUES MVP AUTOMOBILE
+            $table->string('immatriculation')->nullable();
+            $table->string('marque_vehicule')->nullable();
+            $table->string('modele_vehicule')->nullable();
+            
+
             $table->foreignId('assure_id')->constrained('users');
-            //$table->foreignId('sinistre_id')->nullable()->constrained('sinistres');
+           // $table->foreignId('sinistre_id')->nullable()->constrained('sinistres');
             $table->timestamps();
         });
     }

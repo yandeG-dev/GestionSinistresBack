@@ -33,6 +33,11 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::middleware('role:Assureur')->group(function () {
             Route::post('/assureur/assures', [UserController::class, 'createAssure']);
         });
+
+        // --- ROUTES ASSURE (Client) ---
+        Route::middleware('role:Assure')->group(function () {
+            Route::post('/sinistres', [\App\Http\Controllers\SinistreController::class, 'store']);
+        });
         
     });
 });

@@ -48,24 +48,39 @@ class UserController extends Controller
     }
 
     /**
-     * L'Assureur crée un Assuré (Client)
+     * L'Assureur crée un Assuré (Client) ET son Contrat
      */
     public function createAssure(Request $request)
     {
+        // 1. On valide TOUTES les données d'un coup (Client + Contrat)
         $validator = Validator::make($request->all(), [
+            // Infos Client
             'nom' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'telephone' => 'required|string|max:20',
             'adresse' => 'required|string',
+            
+            // Infos Contrat
+            'numeroContrat' => 'required|string|unique:contrats',
+            'dateDebut' => 'required|date',
+            'dateFin' => 'required|date|after:dateDebut',
+            'prime' => 'required|numeric',
+            'franchise' => 'required|numeric',
+            'garantie' => 'required|string',
+            'policeAssurance' => 'required|string',
+            // Infos Voiture
+            'immatriculation' => 'required|string',
+            'marque_vehicule' => 'required|string',
+            'modele_vehicule' => 'required|string',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        // 2. On crée le Client (Assuré) avec son mot de passe temporaire
         $motDePasseAleatoire = Str::random(10);
-
         $user = User::create([
             'nom' => $request->nom,
             'prenom' => $request->prenom,
@@ -76,10 +91,29 @@ class UserController extends Controller
             'adresse' => $request->adresse,
         ]);
 
+        // 3. On crée son contrat d'assurance automobile et on l'attache à ce client !
+        $contrat = \App\Models\Contrat::create([
+            'numeroContrat' => $request->numeroContrat,
+            'typeContrat' => 'Automobile', // On force le type
+            'dateDebut' => $request->dateDebut,
+            'dateFin' => $request->dateFin,
+            'franchise' => $request->franchise,
+            'prime' => $request->prime,
+            'garantie' => $request->garantie,
+            'nomSouscripteur' => $user->nom . ' ' . $user->prenom, // Raccourci métier
+            'policeAssurance' => $request->policeAssurance,
+            'immatriculation' => $request->immatriculation,
+            'marque_vehicule' => $request->marque_vehicule,
+            'modele_vehicule' => $request->modele_vehicule,
+            'assure_id' => $user->id, // L'ID magique de l'utilisateur qu'on vient juste de créer !
+        ]);
+
+        // 4. On retourne le succès total
         return response()->json([
-            'message' => 'Le compte Assuré a été créé avec succès par l\'assureur.',
+            'message' => 'Compte Assuré ET Contrat auto créés avec succès.',
             'mot_de_passe_temporaire' => $motDePasseAleatoire,
-            'user' => $user
+            'user' => $user,
+            'contrat' => $contrat
         ], 201);
     }
 }

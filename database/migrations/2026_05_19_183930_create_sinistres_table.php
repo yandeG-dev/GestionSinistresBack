@@ -12,14 +12,18 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sinistres', function (Blueprint $table) {
-            $table->id('idSinistre'); 
+            $table->id(); 
             $table->date('dateSinistre');
             $table->string('description');
             $table->string('lieuSinistre');
             $table->enum('statut', ['En cours', 'Clôturé', 'En attente', 'Rejeté', 'Remboursé'])->default('En attente');
             
-            $table->foreignId('type_id')->constrained('type_sinistres');
+            // Champ JSON magique pour accueillir toute donnée spécifique au sinistre
+            $table->json('donnees_specifiques')->nullable(); 
+
+           // $table->foreignId('type_id')->constrained('type_sinistres');
             $table->foreignId('assure_id')->constrained('users');
+            $table->foreignId('contrat_id')->nullable()->constrained('contrats');
             $table->timestamps();
         });
     }

@@ -16,8 +16,7 @@ return new class extends Migration
             $table->string('chemin_fichier'); // ex: lien vers le s3 ou chemin local
             $table->string('type_document')->nullable(); // ex: pdf, jpeg
             // Relation 1..N avec Sinistre
-            $table->unsignedBigInteger('sinistre_id');
-            $table->foreign('sinistre_id')->references('idSinistre')->on('sinistres')->onDelete('cascade');
+            $table->foreignId('sinistre_id')->constrained('sinistres')->onDelete('cascade');
             $table->timestamps();
         });
     }

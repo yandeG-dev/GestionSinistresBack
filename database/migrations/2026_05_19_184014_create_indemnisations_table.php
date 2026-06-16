@@ -12,11 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('indemnisations', function (Blueprint $table) {
-            $table->id('idIndemnisation');
+            $table->id();
             $table->decimal('montantBrute', 10, 2);
             $table->enum('statutPaiement', ['Payé', 'En attente', 'Rejeté'])->default('En attente');
-            $table->unsignedBigInteger('sinistre_id');
-            $table->foreign('sinistre_id')->references('idSinistre')->on('sinistres')->onDelete('cascade');
+            $table->foreignId('sinistre_id')->constrained('sinistres')->onDelete('cascade');
             $table->timestamps();
         });
     }
