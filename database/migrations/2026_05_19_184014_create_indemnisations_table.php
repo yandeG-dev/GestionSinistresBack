@@ -14,7 +14,10 @@ return new class extends Migration
         Schema::create('indemnisations', function (Blueprint $table) {
             $table->id();
             $table->decimal('montantBrute', 10, 2);
-            $table->enum('statutPaiement', ['Payé', 'En attente', 'Rejeté'])->default('En attente');
+            $table->decimal('montantFranchise', 10, 2)->nullable();
+            $table->decimal('montantNet', 10, 2)->nullable();
+            $table->enum('statutIndemnisation', ['En attente', 'Validé', 'Refusé', 'Payé'])->default('En attente');
+            $table->date('dateApprobation')->nullable();
             $table->foreignId('sinistre_id')->constrained('sinistres')->onDelete('cascade');
             $table->timestamps();
         });

@@ -22,7 +22,7 @@ return new class extends Migration
             $table->json('donnees_specifiques')->nullable(); 
 
            // $table->foreignId('type_id')->constrained('type_sinistres');
-            $table->foreignId('assure_id')->constrained('users');
+            //$table->foreignId('assure_id')->constrained('users');
             $table->foreignId('contrat_id')->nullable()->constrained('contrats');
             $table->timestamps();
         });
