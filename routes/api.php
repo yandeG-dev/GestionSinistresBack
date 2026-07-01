@@ -29,9 +29,9 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::post('/admin/professionnal', [UserController::class, 'createProfessional']);
         });
         
-        // --- ROUTES ASSUREUR ---
-        Route::middleware('role:Assureur')->group(function () {
-            Route::post('/assureur/assures', [UserController::class, 'createAssure']);
+        // --- ROUTES GESTIONNAIRE ---
+        Route::middleware('role:Gestionnaire')->group(function () {
+            Route::post('/gestionnaire/assures', [UserController::class, 'createAssure']);
         });
 
         // --- ROUTES ASSURE (Client) ---

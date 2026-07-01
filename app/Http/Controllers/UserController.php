@@ -19,7 +19,7 @@ class UserController extends Controller
             'nom' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'role' => 'required|in:Assureur,Expert',
+            'role' => 'required|in:Gestionnaire,Expert',
             'telephone' => 'required|string|max:20',
             'adresse' => 'required|string',
         ]);

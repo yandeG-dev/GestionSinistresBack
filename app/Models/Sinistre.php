@@ -14,15 +14,12 @@ class Sinistre extends Model
         'description',
         'lieuSinistre',
         'statut',
-        'donnees_specifiques',
-        'type_id',
+        'type_id', // Ce champ était déjà commenté en bdd, on le laisse s'il sert à rien ce n'est pas grave
         'assure_id',
         'contrat_id'
     ];
 
-    // C'est ICI qu'on dit à Laravel que la case magique est un tableau (Array)
     protected $casts = [
-        'donnees_specifiques' => 'array',
         'dateSinistre' => 'date',
     ];
 }
