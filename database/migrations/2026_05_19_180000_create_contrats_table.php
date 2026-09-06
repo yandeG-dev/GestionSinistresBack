@@ -20,17 +20,14 @@ return new class extends Migration
             $table->decimal('franchise', 10, 2);
             $table->decimal('prime', 10, 2);
             $table->string('garantie');
-            $table->string('nomSouscripteur');
-            $table->string('policeAssurance');
             
             // CHAMPS SPÉCIFIQUES MVP AUTOMOBILE
-            $table->string('immatriculation')->nullable();
-            $table->string('marque_vehicule')->nullable();
-            $table->string('modele_vehicule')->nullable();
+            $table->foreignId('vehicule_id')->constrained('vehicules')->onDelete('cascade');
             
 
             $table->foreignId('assure_id')->constrained('users');
            // $table->foreignId('sinistre_id')->nullable()->constrained('sinistres');
+            $table->softDeletes(); // Pour archivage logique (remplace la suppression physique)
             $table->timestamps();
         });
     }

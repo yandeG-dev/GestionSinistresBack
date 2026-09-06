@@ -19,9 +19,8 @@ class UserController extends Controller
             'nom' => 'required|string|max:255',
             'prenom' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
-            'role' => 'required|in:Gestionnaire,Expert',
+            'role' => 'required|in:Administrateur,Agent,Expert,Gestionnaire,Comptable',
             'telephone' => 'required|string|max:20',
-            'adresse' => 'required|string',
         ]);
 
         if ($validator->fails()) {
@@ -37,7 +36,7 @@ class UserController extends Controller
             'password' => Hash::make($motDePasseAleatoire),
             'role' => $request->role,
             'telephone' => $request->telephone,
-            'adresse' => $request->adresse,
+            'adresse' => 'Non renseignée'
         ]);
 
         return response()->json([
@@ -115,5 +114,39 @@ class UserController extends Controller
             'user' => $user,
             'contrat' => $contrat
         ], 201);
+    }
+    /**
+     * Liste tous les utilisateurs pour l'admin
+     */
+    public function listUsers()
+    {
+        $users = User::select('id', 'nom', 'prenom', 'email', 'role', 'telephone', 'statut')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($users);
+    }
+
+    /**
+     * Active ou désactive un utilisateur
+     */
+    public function toggleStatus($id)
+    {
+        $user = User::findOrFail($id);
+        $user->statut = $user->statut === 'Actif' ? 'Inactif' : 'Actif';
+        $user->save();
+
+        return response()->json(['message' => 'Statut mis à jour.', 'user' => $user]);
+    }
+
+    /**
+     * Supprime (archive) un utilisateur
+     */
+    public function deleteUser($id)
+    {
+        $user = User::findOrFail($id);
+        $user->delete();
+
+        return response()->json(['message' => 'Utilisateur supprimé.']);
     }
 }

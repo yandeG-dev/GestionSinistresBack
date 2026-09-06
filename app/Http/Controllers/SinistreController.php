@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Sinistre;
 use App\Models\Contrat;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class SinistreController extends Controller
@@ -69,4 +70,115 @@ class SinistreController extends Controller
             'fichiers_joints' => $fichiersSauvegardes
         ], 201);
     }
+
+    public function mesSinistres()
+{
+    // On récupère l'utilisateur connecté
+    $assure = Auth::user();
+
+    // On charge ses sinistres avec les relations nécessaires
+    $sinistres = Sinistre::with(['contrat', 'documents'])
+        ->where('assure_id', $assure->id)
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return response()->json($sinistres);
+}
+// Cette méthode permet à un gestionnaire de voir tous les sinistres de ses assurés
+public function showDetailsSinistre($id)
+{
+    $sinistre = Sinistre::with(['contrat.vehicule', 'documents'])
+        ->where('id', $id)
+        ->where(function ($query) {
+            $query->where('assure_id', Auth::id())
+                  ->orWhere('gestionnaire_id', Auth::id());
+        })
+        ->first();
+
+    if (!$sinistre) {
+        return response()->json(['message' => 'Sinistre introuvable.'], 404);
+    }
+
+    return response()->json($sinistre);
+}
+// Cette méthode permet à un gestionnaire de voir tous les sinistres de ses assurés
+public function showAllSinitresByGestionnaire()
+{
+    $sinistres = Sinistre::with(['contrat.vehicule', 'documents', 'assure'])
+        ->whereHas('assure', function ($query) {
+            $query->where('gestionnaire_id', Auth::id());
+        })
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return response()->json($sinistres);
+}
+
+/**
+ * Archiver un sinistre (le gestionnaire ou l'admin peut archiver)
+ * Le sinistre n'est pas supprimé, il passe en statut "Archivé" et est soft-deleted
+ */
+public function archiverSinistre($id)
+{
+    $sinistre = Sinistre::where('id', $id)
+        ->whereHas('assure', function ($query) {
+            $query->where('gestionnaire_id', Auth::id());
+        })
+        ->first();
+
+    if (!$sinistre) {
+        return response()->json(['message' => 'Sinistre introuvable ou non autorisé.'], 404);
+    }
+
+    // On vérifie qu'il peut être archivé (pas en cours de traitement actif)
+    if ($sinistre->statut === 'En cours') {
+        return response()->json(['message' => 'Impossible d\'archiver un sinistre en cours de traitement.'], 422);
+    }
+
+    $sinistre->statut = 'Archivé';
+    $sinistre->save();
+    $sinistre->delete(); // SoftDelete : enregistre deleted_at, invisible des requêtes normales
+
+    return response()->json(['message' => 'Sinistre archivé avec succès.', 'sinistre' => $sinistre]);
+}
+
+/**
+ * Désarchiver un sinistre (restauration)
+ */
+public function desarchiverSinistre($id)
+{
+    $sinistre = Sinistre::onlyTrashed()
+        ->where('id', $id)
+        ->whereHas('assure', function ($query) {
+            $query->where('gestionnaire_id', Auth::id());
+        })
+        ->first();
+
+    if (!$sinistre) {
+        return response()->json(['message' => 'Sinistre archivé introuvable ou non autorisé.'], 404);
+    }
+
+    $sinistre->restore(); // Restaure le soft delete
+    $sinistre->statut = 'En attente'; // Repasse en attente après restauration
+    $sinistre->save();
+
+    return response()->json(['message' => 'Sinistre désarchivé avec succès.', 'sinistre' => $sinistre]);
+}
+
+/**
+ * Voir tous les sinistres archivés (gestionnaire)
+ */
+public function sinistresArchives()
+{
+    $sinistres = Sinistre::onlyTrashed()
+        ->with(['contrat.vehicule', 'documents', 'assure'])
+        ->whereHas('assure', function ($query) {
+            $query->where('gestionnaire_id', Auth::id());
+        })
+        ->orderBy('deleted_at', 'desc')
+        ->get();
+
+    return response()->json($sinistres);
+}
+
 }

@@ -32,20 +32,35 @@ class AuthController extends Controller
             return response()->json(['message' => 'Les identifiants sont incorrects'], 401);
         }
 
-        // Génération d'un code à 6 chiffres
-        $code = rand(100000, 999999);
-        
-        $user->two_factor_code = $code;
-        $user->two_factor_expires_at = Carbon::now()->addMinutes(10);
-        $user->save();
+        // Vérification si le 2FA est activé
+        if ($user->two_factor_enabled) {
+            // Génération d'un code à 6 chiffres
+            $code = rand(100000, 999999);
+            
+            $user->two_factor_code = $code;
+            $user->two_factor_expires_at = Carbon::now()->addMinutes(10);
+            $user->save();
 
-        // TODO : Vous pourrez envoyer $code par email/SMS à ce moment-là
-        // Mail::to($user->email)->send(new SendCodeMail($code));
+            // TODO : Vous pourrez envoyer $code par email/SMS à ce moment-là
+            // Mail::to($user->email)->send(new SendCodeMail($code));
+
+            return response()->json([
+                'requires_2fa' => true,
+                'message' => 'Un code de vérification vous a été envoyé.',
+                // Seulement pour le test, on renvoie le code côté frontend. En production, RETIREZ cette ligne !
+                'debug_code' => $code 
+            ], 200);
+        }
+
+        // Si le 2FA n'est pas activé, on crée le token directement
+        $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Un code de vérification vous a été envoyé.',
-            // Seulement pour le test, on renvoie le code côté frontend. En production, RETIREZ cette ligne !
-            'debug_code' => $code 
+            'requires_2fa' => false,
+            'message' => 'Connexion réussie',
+            'access_token' => $token,
+            'token_type' => 'Bearer',
+            'user' => $user
         ], 200);
     }
 
@@ -135,6 +150,29 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Mot de passe changé avec succès. Vous avez désormais un accès total.'
+        ], 200);
+    }
+
+    /**
+     * Activer/Désactiver le 2FA
+     */
+    public function toggle2FA(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'two_factor_enabled' => 'required|boolean',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+
+        $user = $request->user();
+        $user->two_factor_enabled = $request->two_factor_enabled;
+        $user->save();
+
+        return response()->json([
+            'message' => 'Préférence 2FA mise à jour avec succès.',
+            'user' => $user
         ], 200);
     }
 }

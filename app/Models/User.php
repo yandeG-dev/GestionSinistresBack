@@ -25,10 +25,12 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'statut',
         'telephone',
         'adresse',
         'two_factor_code',
         'two_factor_expires_at',
+        'two_factor_enabled',
         'doit_changer_mdp',
     ];
 
@@ -54,6 +56,18 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_expires_at' => 'datetime',
+            'doit_changer_mdp' => 'boolean',
+            'two_factor_enabled' => 'boolean',
         ];
+    }
+
+    public function contrats()
+    {
+        return $this->hasMany(Contrat::class, 'assure_id');
+    }
+
+    public function sinistres()
+    {
+        return $this->hasMany(Sinistre::class, 'assure_id');
     }
 }

@@ -16,11 +16,13 @@ return new class extends Migration
             $table->date('dateSinistre');
             $table->string('description');
             $table->string('lieuSinistre');
-            $table->enum('statut', ['En cours', 'Clôturé', 'En attente', 'Rejeté', 'Remboursé'])->default('En attente');
+            $table->enum('statut', ['En cours', 'Clôturé', 'En attente', 'Rejeté', 'Remboursé', 'Archivé'])->default('En attente');
+            $table->softDeletes(); // Pour archivage logique
             
             $table->foreignId('assure_id')->constrained('users');
             $table->foreignId('contrat_id')->nullable()->constrained('contrats');
             $table->timestamps();
+            
         });
     }
 
