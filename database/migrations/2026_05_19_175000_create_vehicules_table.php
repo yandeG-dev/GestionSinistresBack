@@ -20,7 +20,7 @@ return new class extends Migration
             $table->integer('puissance_fiscale');
             $table->date('date_mise_en_circulation');
             
-            $table->foreignId('contrat_id')->constrained('contrats')->onDelete('cascade');
+           // $table->foreignId('contrat_id')->constrained('contrats')->onDelete('cascade');
 
             $table->timestamps();
         });

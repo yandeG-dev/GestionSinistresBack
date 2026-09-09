@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Contrat;
+use App\Models\Vehicule;
 
 class AssureSeeder extends Seeder
 {
@@ -23,7 +24,17 @@ class AssureSeeder extends Seeder
             'doit_changer_mdp' => false, // Désactivé pour faciliter vos tests Postman
         ]);
 
-        // 2. Création de son contrat auto
+        // 2. Création du véhicule de l'assuré
+        $vehicule = Vehicule::create([
+            'marque' => 'Toyota',
+            'modele' => 'Corolla',
+            'immatriculation' => 'DK-1234-A',
+            'type_carburant' => 'Essence',
+            'puissance_fiscale' => 7,
+            'date_mise_en_circulation' => '2020-01-15',
+        ]);
+
+        // 3. Création de son contrat auto lié au véhicule
         Contrat::create([
             'numeroContrat' => 'AUTO-2024-DK-01',
             'typeContrat' => 'Automobile',
@@ -32,12 +43,8 @@ class AssureSeeder extends Seeder
             'franchise' => 20000,
             'prime' => 150000,
             'garantie' => 'Tous Risques',
-            'nomSouscripteur' => $assure->nom . ' ' . $assure->prenom,
-            'policeAssurance' => 'POL-998877',
-            'immatriculation' => 'DK-1234-A',
-            'marque_vehicule' => 'Toyota',
-            'modele_vehicule' => 'Corolla',
-            'assure_id' => $assure->id
+            'assure_id' => $assure->id,
+            'vehicule_id' => $vehicule->id,
         ]);
     }
 }
