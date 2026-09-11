@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -12,17 +12,26 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sinistres', function (Blueprint $table) {
-            $table->id(); 
+            $table->id();
+            $table->string('numeroDossier')->unique();
+            $table->enum('typeSinistre', [
+                'Accident / Collision',
+                'Bris de glace',
+                'Vol & Vandalisme',
+                'Incendie & Panne',
+                'Catastrophe naturelle',
+                'Autre'
+            ]);
             $table->date('dateSinistre');
-            $table->string('description');
+            $table->time('heureSinistre')->nullable();
             $table->string('lieuSinistre');
-            $table->enum('statut', ['En cours', 'Clôturé', 'En attente', 'Rejeté', 'Remboursé', 'Archivé'])->default('En attente');
-            $table->softDeletes(); // Pour archivage logique
-            
+            $table->text('description');
+            $table->enum('statut', ['En cours', 'Cloture', 'En attente', 'Rejete', 'Rembourse', 'Archive'])->default('En attente');
+            $table->softDeletes();
+
             $table->foreignId('assure_id')->constrained('users');
             $table->foreignId('contrat_id')->nullable()->constrained('contrats');
             $table->timestamps();
-            
         });
     }
 
@@ -34,3 +43,4 @@ return new class extends Migration
         Schema::dropIfExists('sinistres');
     }
 };
+

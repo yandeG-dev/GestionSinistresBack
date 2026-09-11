@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -61,6 +61,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // --- ROUTES ASSURE (Client) ---
         Route::middleware('role:Assure')->group(function () {
+            // Contrats
+            Route::get('/assure/contrats', [ContratController::class, 'mesContrats']);
+
             // Sinistres
             Route::post('/sinistres', [SinistreController::class, 'store']);
             Route::get('/sinistres', [SinistreController::class, 'mesSinistres']);
@@ -72,3 +75,4 @@ Route::middleware('auth:sanctum')->group(function () {
 
     });
 });
+

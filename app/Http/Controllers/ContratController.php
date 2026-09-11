@@ -9,6 +9,18 @@ use Illuminate\Http\Request;
 class ContratController extends Controller
 {
     /**
+     * Récupérer les contrats de l'assuré connecté
+     */
+    public function mesContrats()
+    {
+        $contrats = Contrat::with('vehicule')
+            ->where('assure_id', auth()->id())
+            ->where('statut', 'Actif')
+            ->get();
+            
+        return response()->json($contrats);
+    }
+    /**
      * Créer un nouveau contrat, avec son véhicule associé.
      */
     public function createContrat(Request $request)

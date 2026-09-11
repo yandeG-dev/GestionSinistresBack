@@ -16,35 +16,32 @@ class SinistreController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
+            'typeSinistre' => 'required|string',
             'dateSinistre' => 'required|date',
+            'heureSinistre' => 'nullable|date_format:H:i',
             'description' => 'required|string',
             'lieuSinistre' => 'required|string',
-            'contrat_id' => 'required|integer',
-            'documents' => 'nullable|array', // On autorise une liste de documents
-            'documents.*' => 'file|mimes:jpeg,png,jpg,pdf|max:5120' // Max 5MB par fichier, format photo ou pdf
+            'documents' => 'nullable|array',
+            'documents.*' => 'file|mimes:jpeg,png,jpg,pdf|max:5120'
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // SÉCURITÉ : On vérifie que le contrat existe ET qu'il appartient bien à l'Assuré connecté !
-        $contrat = Contrat::where('id', $request->contrat_id)
-            ->where('assure_id', auth()->id())
-            ->first();
-
-        if (!$contrat) {
-            return response()->json(['message' => 'Contrat introuvable ou vous n\'en êtes pas le propriétaire.'], 403);
-        }
+        $numeroDossier = 'SIN-' . date('Y') . '-' . rand(1000, 9999);
 
         // 1. Création du sinistre pur
         $sinistre = Sinistre::create([
+            'numeroDossier' => $numeroDossier,
+            'typeSinistre' => $request->typeSinistre,
+            'heureSinistre' => $request->heureSinistre,
             'dateSinistre' => $request->dateSinistre,
             'description' => $request->description,
             'lieuSinistre' => $request->lieuSinistre,
-            'statut' => 'En attente', // Par défaut pour un nouveau sinistre
+            'statut' => 'En attente',
             'assure_id' => auth()->id(),
-            'contrat_id' => $request->contrat_id
+            'contrat_id' => null // Le gestionnaire l'associera plus tard
         ]);
 
         // 2. Gestion des Fichiers Uploadés (Photos, Constats PDF)
@@ -182,3 +179,6 @@ public function sinistresArchives()
 }
 
 }
+
+
+

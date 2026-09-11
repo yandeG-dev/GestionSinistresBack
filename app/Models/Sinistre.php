@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Models;
 
@@ -11,11 +11,13 @@ class Sinistre extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'numeroDossier',
+        'typeSinistre',
+        'heureSinistre',
         'dateSinistre',
         'description',
         'lieuSinistre',
         'statut',
-        'type_id',
         'assure_id',
         'gestionnaire_id',
         'expert_id',
@@ -68,3 +70,4 @@ class Sinistre extends Model
         return $this->hasMany(Document::class);
     }
 }
+
