@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Validator;
 class SinistreController extends Controller
 {
     /**
-     * L'Assuré déclare un nouveau sinistre avec pièces jointes
+     * L'AssurÃ© dÃ©clare un nouveau sinistre avec piÃ¨ces jointes
      */
     public function store(Request $request)
     {
@@ -31,7 +31,7 @@ class SinistreController extends Controller
 
         $numeroDossier = 'SIN-' . date('Y') . '-' . rand(1000, 9999);
 
-        // 1. Création du sinistre pur
+        // 1. CrÃ©ation du sinistre pur
         $sinistre = Sinistre::create([
             'numeroDossier' => $numeroDossier,
             'typeSinistre' => $request->typeSinistre,
@@ -41,10 +41,11 @@ class SinistreController extends Controller
             'lieuSinistre' => $request->lieuSinistre,
             'statut' => 'En attente',
             'assure_id' => auth()->id(),
-            'contrat_id' => null // Le gestionnaire l'associera plus tard
+            'contrat_id' => auth()->user()->contrats()->latest()->first()?->id
         ]);
 
-        // 2. Gestion des Fichiers Uploadés (Photos, Constats PDF)
+        // 2. Gestion des Fichiers UploadÃ©s (Photos, Constats PDF)
+        $fichiersSauvegardes$sinistre->load('contrat');
         $fichiersSauvegardes = [];
         if ($request->hasFile('documents')) {
             foreach ($request->file('documents') as $file) {
@@ -62,7 +63,7 @@ class SinistreController extends Controller
         }
 
         return response()->json([
-            'message' => 'Votre déclaration de sinistre a bien été enregistrée et est en attente de traitement.',
+            'message' => 'Votre dÃ©claration de sinistre a bien Ã©tÃ© enregistrÃ©e et est en attente de traitement.',
             'sinistre' => $sinistre,
             'fichiers_joints' => $fichiersSauvegardes
         ], 201);
@@ -70,10 +71,10 @@ class SinistreController extends Controller
 
     public function mesSinistres()
 {
-    // On récupère l'utilisateur connecté
+    // On rÃ©cupÃ¨re l'utilisateur connectÃ©
     $assure = Auth::user();
 
-    // On charge ses sinistres avec les relations nécessaires
+    // On charge ses sinistres avec les relations nÃ©cessaires
     $sinistres = Sinistre::with(['contrat', 'documents'])
         ->where('assure_id', $assure->id)
         ->orderBy('created_at', 'desc')
@@ -81,7 +82,7 @@ class SinistreController extends Controller
 
     return response()->json($sinistres);
 }
-// Cette méthode permet à un gestionnaire de voir tous les sinistres de ses assurés
+// Cette mÃ©thode permet Ã  un gestionnaire de voir tous les sinistres de ses assurÃ©s
 public function showDetailsSinistre($id)
 {
     $sinistre = Sinistre::with(['contrat.vehicule', 'documents'])
@@ -98,7 +99,7 @@ public function showDetailsSinistre($id)
 
     return response()->json($sinistre);
 }
-// Cette méthode permet à un gestionnaire de voir tous les sinistres de ses assurés
+// Cette mÃ©thode permet Ã  un gestionnaire de voir tous les sinistres de ses assurÃ©s
 public function showAllSinitresByGestionnaire()
 {
     $sinistres = Sinistre::with(['contrat.vehicule', 'documents', 'assure'])
@@ -113,7 +114,7 @@ public function showAllSinitresByGestionnaire()
 
 /**
  * Archiver un sinistre (le gestionnaire ou l'admin peut archiver)
- * Le sinistre n'est pas supprimé, il passe en statut "Archivé" et est soft-deleted
+ * Le sinistre n'est pas supprimÃ©, il passe en statut "ArchivÃ©" et est soft-deleted
  */
 public function archiverSinistre($id)
 {
@@ -124,23 +125,23 @@ public function archiverSinistre($id)
         ->first();
 
     if (!$sinistre) {
-        return response()->json(['message' => 'Sinistre introuvable ou non autorisé.'], 404);
+        return response()->json(['message' => 'Sinistre introuvable ou non autorisÃ©.'], 404);
     }
 
-    // On vérifie qu'il peut être archivé (pas en cours de traitement actif)
+    // On vÃ©rifie qu'il peut Ãªtre archivÃ© (pas en cours de traitement actif)
     if ($sinistre->statut === 'En cours') {
         return response()->json(['message' => 'Impossible d\'archiver un sinistre en cours de traitement.'], 422);
     }
 
-    $sinistre->statut = 'Archivé';
+    $sinistre->statut = 'ArchivÃ©';
     $sinistre->save();
-    $sinistre->delete(); // SoftDelete : enregistre deleted_at, invisible des requêtes normales
+    $sinistre->delete(); // SoftDelete : enregistre deleted_at, invisible des requÃªtes normales
 
-    return response()->json(['message' => 'Sinistre archivé avec succès.', 'sinistre' => $sinistre]);
+    return response()->json(['message' => 'Sinistre archivÃ© avec succÃ¨s.', 'sinistre' => $sinistre]);
 }
 
 /**
- * Désarchiver un sinistre (restauration)
+ * DÃ©sarchiver un sinistre (restauration)
  */
 public function desarchiverSinistre($id)
 {
@@ -152,18 +153,18 @@ public function desarchiverSinistre($id)
         ->first();
 
     if (!$sinistre) {
-        return response()->json(['message' => 'Sinistre archivé introuvable ou non autorisé.'], 404);
+        return response()->json(['message' => 'Sinistre archivÃ© introuvable ou non autorisÃ©.'], 404);
     }
 
     $sinistre->restore(); // Restaure le soft delete
-    $sinistre->statut = 'En attente'; // Repasse en attente après restauration
+    $sinistre->statut = 'En attente'; // Repasse en attente aprÃ¨s restauration
     $sinistre->save();
 
-    return response()->json(['message' => 'Sinistre désarchivé avec succès.', 'sinistre' => $sinistre]);
+    return response()->json(['message' => 'Sinistre dÃ©sarchivÃ© avec succÃ¨s.', 'sinistre' => $sinistre]);
 }
 
 /**
- * Voir tous les sinistres archivés (gestionnaire)
+ * Voir tous les sinistres archivÃ©s (gestionnaire)
  */
 public function sinistresArchives()
 {
