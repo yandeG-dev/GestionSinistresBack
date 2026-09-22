@@ -1,4 +1,4 @@
-ï»¿<?php
+<?php
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -7,22 +7,22 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ContratController;
 use App\Http\Controllers\SinistreController;
 
-// ROUTES PUBLIQUES (Pas besoin d'Ãªtre connectÃ©)
+// ROUTES PUBLIQUES (Pas besoin d'être connecté)
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/verify-2fa', [AuthController::class, 'verify2fa']);
 
-// ROUTES PROTÃ‰GÃ‰ES (L'utilisateur a un token Sanctum valide)
+// ROUTES PROTÉGÉES (L'utilisateur a un token Sanctum valide)
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 
-    // Route spÃ©ciale pour changer le mot de passe (Elle ne doit PAS Ãªtre bloquÃ©e par force_password)
+    // Route spéciale pour changer le mot de passe (Elle ne doit PAS être bloquée par force_password)
     Route::post('/auth/change-password', [AuthController::class, 'changePassword']);
     
-    // Activer/DÃ©sactiver le 2FA
+    // Activer/Désactiver le 2FA
     Route::patch('/auth/toggle-2fa', [AuthController::class, 'toggle2FA']);
 
-    // --- TOUTES LES AUTRES ROUTES SONT BLOQUÃ‰ES SI LE MOT DE PASSE DOIT ETRE CHANGÃ‰ ---
+    // --- TOUTES LES AUTRES ROUTES SONT BLOQUÉES SI LE MOT DE PASSE DOIT ETRE CHANGÉ ---
     Route::middleware('force_password_change')->group(function () {
 
         Route::get('/user', function (Request $request) {
@@ -39,21 +39,22 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // --- ROUTES GESTIONNAIRE ---
         Route::middleware('role:Gestionnaire')->group(function () {
-            // AssurÃ©s
+            // Assurés
             Route::post('/gestionnaire/assures', [UserController::class, 'createAssure']);
+            Route::get('/gestionnaire/assures', [UserController::class, 'listAssures']);
 
             // Sinistres
             Route::get('/gestionnaire/sinistres', [SinistreController::class, 'showAllSinitresByGestionnaire']);
             Route::get('/gestionnaire/sinistres/{id}', [SinistreController::class, 'showDetailsSinistre']);
 
-            // Contrats (CRUD complet implÃ©mentÃ© dans ContratController)
+            // Contrats (CRUD complet implémenté dans ContratController)
             Route::post('/contrats', [ContratController::class, 'createContrat']);
             Route::get('/contrats', [ContratController::class, 'contratsArchives'])->name('contrats.archives'); // archives seulement
             Route::get('/contrats/{contrat}', [ContratController::class, 'showContrat']);
             Route::put('/contrats/{contrat}', [ContratController::class, 'updateContrat']);
             Route::patch('/contrats/{contrat}/archiver', [ContratController::class, 'archiverContrat']);
 
-            // Sinistres â€” archivage
+            // Sinistres — archivage
             Route::patch('/gestionnaire/sinistres/{id}/archiver', [SinistreController::class, 'archiverSinistre']);
             Route::patch('/gestionnaire/sinistres/{id}/desarchiver', [SinistreController::class, 'desarchiverSinistre']);
             Route::get('/gestionnaire/sinistres/archives', [SinistreController::class, 'sinistresArchives']);
@@ -75,4 +76,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
     });
 });
+
 
