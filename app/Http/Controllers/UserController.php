@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Mail\UserCreatedMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -31,7 +33,15 @@ class UserController extends Controller
             'role'      => $request->role,
             'telephone' => $request->telephone,
             'adresse'   => 'Non renseignee',
+            'doit_changer_mdp' => true,
         ]);
+        
+        try {
+            Mail::to($user->email)->send(new UserCreatedMail($user, $motDePasseAleatoire));
+        } catch (\Exception $e) {
+            \Log::error("Erreur d'envoi d'email : " . $e->getMessage());
+        }
+        
         return response()->json([
             'message'                 => 'Le profil professionel cree avec succes.',
             'mot_de_passe_temporaire' => $motDePasseAleatoire,
@@ -71,6 +81,7 @@ class UserController extends Controller
             'role'      => 'Assure',
             'telephone' => $request->telephone,
             'adresse'   => $request->adresse,
+            'doit_changer_mdp' => true,
         ]);
 
         $vehicule = \App\Models\Vehicule::create([
@@ -91,6 +102,12 @@ class UserController extends Controller
             'assure_id'       => $user->id,
             'vehicule_id'     => $vehicule->id,
         ]);
+
+        try {
+            Mail::to($user->email)->send(new UserCreatedMail($user, $motDePasseAleatoire));
+        } catch (\Exception $e) {
+            \Log::error("Erreur d'envoi d'email pour l'assure : " . $e->getMessage());
+        }
 
         return response()->json([
             'message'                 => 'Compte Assure et Contrat crees avec succes.',
