@@ -32,6 +32,7 @@ class User extends Authenticatable
         'two_factor_expires_at',
         'two_factor_enabled',
         'doit_changer_mdp',
+        'gestionnaire_id',
     ];
 
     /**
@@ -59,6 +60,16 @@ class User extends Authenticatable
             'doit_changer_mdp' => 'boolean',
             'two_factor_enabled' => 'boolean',
         ];
+    }
+
+    public function gestionnaire()
+    {
+        return $this->belongsTo(User::class, 'gestionnaire_id');
+    }
+
+    public function assures()
+    {
+        return $this->hasMany(User::class, 'gestionnaire_id');
     }
 
     public function contrats()

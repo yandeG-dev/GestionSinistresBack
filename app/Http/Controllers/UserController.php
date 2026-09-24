@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Mail\UserCreatedMail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
@@ -81,6 +82,7 @@ class UserController extends Controller
             'role'      => 'Assure',
             'telephone' => $request->telephone,
             'adresse'   => $request->adresse,
+            'gestionnaire_id' => Auth::id(),
             'doit_changer_mdp' => true,
         ]);
 
@@ -121,6 +123,7 @@ class UserController extends Controller
     public function listAssures()
     {
         $users = User::where('role', 'Assure')
+            ->where('gestionnaire_id', Auth::id())
             ->select('id', 'nom', 'prenom', 'email', 'role', 'telephone', 'statut')
             ->orderBy('created_at', 'desc')
             ->get();

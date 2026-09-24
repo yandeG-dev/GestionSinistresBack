@@ -90,7 +90,9 @@ public function showDetailsSinistre($id)
         ->where('id', $id)
         ->where(function ($query) {
             $query->where('assure_id', Auth::id())
-                  ->orWhere('gestionnaire_id', Auth::id());
+                  ->orWhereHas('assure', function ($assureQuery) {
+                      $assureQuery->where('gestionnaire_id', Auth::id());
+                  });
         })
         ->first();
 
