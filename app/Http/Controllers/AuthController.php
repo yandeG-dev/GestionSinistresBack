@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\TwoFactorCodeMail;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
@@ -35,20 +37,17 @@ class AuthController extends Controller
         // Vérification si le 2FA est activé
         if ($user->two_factor_enabled) {
             // Génération d'un code à 6 chiffres
-            $code = rand(100000, 999999);
+            $code = (string) random_int(100000, 999999);
             
             $user->two_factor_code = $code;
             $user->two_factor_expires_at = Carbon::now()->addMinutes(10);
             $user->save();
 
-            // TODO : Vous pourrez envoyer $code par email/SMS à ce moment-là
-            // Mail::to($user->email)->send(new SendCodeMail($code));
+            Mail::to($user->email)->send(new TwoFactorCodeMail($code));
 
             return response()->json([
                 'requires_2fa' => true,
                 'message' => 'Un code de vérification vous a été envoyé.',
-                // Seulement pour le test, on renvoie le code côté frontend. En production, RETIREZ cette ligne !
-                'debug_code' => $code 
             ], 200);
         }
 
@@ -129,7 +128,20 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'current_password' => 'required',
             // Oblige à avoir un mot de passe de 8 caractères, différent de l'ancien, et qui doit être confirmé (champ new_password_confirmation)
-            'new_password' => 'required|min:8|different:current_password|confirmed', 
+            'new_password' => [
+                'required',
+                'min:8',
+                'different:current_password',
+                'confirmed',
+                'regex:/[A-Z]/',
+                'regex:/[0-9]/',
+                'regex:/[!@#$%^&*]/',
+            ],
+        ], [
+            'new_password.min' => 'Le mot de passe doit contenir au moins 8 caractères.',
+            'new_password.different' => 'Le nouveau mot de passe doit être différent de l\'actuel.',
+            'new_password.confirmed' => 'La confirmation du mot de passe ne correspond pas.',
+            'new_password.regex' => 'Le mot de passe doit contenir une majuscule, un chiffre et un caractère spécial (@, #, !, *).',
         ]);
 
         if ($validator->fails()) {
