@@ -182,7 +182,76 @@ public function sinistresArchives()
     return response()->json($sinistres);
 }
 
+
+    public function getGestionnaireDashboardStats()
+    {
+        $gestionnaireId = Auth::id();
+
+        // Logique avec fallback si aucun assure n'est encore assigne
+        $totalAssures = \App\Models\User::where('role', 'Assure')
+            ->where('gestionnaire_id', $gestionnaireId)
+            ->count();
+
+        if ($totalAssures === 0) {
+            $totalAssures = \App\Models\User::where('role', 'Assure')->count();
+            $totalSinistres = Sinistre::count();
+            $sinistresEnAttente = Sinistre::where('statut', 'En attente')->count();
+            $sinistresEnCours = Sinistre::where('statut', 'En cours')->count();
+            $sinistresParType = Sinistre::select('typeSinistre', \DB::raw('count(*) as count'))
+                ->groupBy('typeSinistre')->get();
+        } else {
+            $totalSinistres = Sinistre::whereHas('assure', function ($q) use ($gestionnaireId) {
+                $q->where('gestionnaire_id', $gestionnaireId);
+            })->count();
+            $sinistresEnAttente = Sinistre::whereHas('assure', function ($q) use ($gestionnaireId) {
+                $q->where('gestionnaire_id', $gestionnaireId);
+            })->where('statut', 'En attente')->count();
+            $sinistresEnCours = Sinistre::whereHas('assure', function ($q) use ($gestionnaireId) {
+                $q->where('gestionnaire_id', $gestionnaireId);
+            })->where('statut', 'En cours')->count();
+            $sinistresParType = Sinistre::whereHas('assure', function ($q) use ($gestionnaireId) {
+                $q->where('gestionnaire_id', $gestionnaireId);
+            })->select('typeSinistre', \DB::raw('count(*) as count'))
+              ->groupBy('typeSinistre')->get();
+        }
+
+        // Distribution par type
+        $typeDistribution = [];
+        foreach ($sinistresParType as $type) {
+            $percent = $totalSinistres > 0 ? round(($type->count / $totalSinistres) * 100) : 0;
+            $typeDistribution[] = [
+                'type'       => $type->typeSinistre,
+                'count'      => $type->count,
+                'percentage' => $percent,
+            ];
+        }
+
+        // Liste des experts (utilisateurs avec role Expert)
+        $experts = \App\Models\User::where('role', 'Expert')
+            ->select('id', 'name', 'email')
+            ->get()
+            ->map(function ($e) {
+                return [
+                    'id'   => $e->id,
+                    'name' => $e->name,
+                    'email' => $e->email,
+                    'statut' => 'Disponible', // on pourra enrichir plus tard
+                ];
+            });
+
+        $totalExperts = $experts->count();
+        $expertsDispo = $experts->where('statut', 'Disponible')->count();
+
+        return response()->json([
+            'totalAssures'      => $totalAssures,
+            'totalSinistres'    => $totalSinistres,
+            'sinistresEnAttente'=> $sinistresEnAttente,
+            'sinistresEnCours'  => $sinistresEnCours,
+            'sinistresParType'  => $typeDistribution,
+            'experts'           => $experts->values(),
+            'totalExperts'      => $totalExperts,
+            'expertsDispo'      => $expertsDispo,
+        ]);
+    }
+
 }
-
-
-

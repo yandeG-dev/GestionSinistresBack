@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             GestionnaireSeeder::class,
             AssureSeeder::class,
+            expertSeeder::class,
         ]);
     }
 }

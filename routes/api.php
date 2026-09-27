@@ -44,6 +44,7 @@ Route::middleware('auth:sanctum')->group(function () {
             Route::get('/gestionnaire/assures', [UserController::class, 'listAssures']);
 
             // Sinistres
+            Route::get('/gestionnaire/dashboard-stats', [SinistreController::class, 'getGestionnaireDashboardStats']);
             Route::get('/gestionnaire/sinistres', [SinistreController::class, 'showAllSinitresByGestionnaire']);
             Route::get('/gestionnaire/sinistres/{id}', [SinistreController::class, 'showDetailsSinistre']);
 
